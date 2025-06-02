@@ -1,0 +1,299 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+---
+description: 
+globs: 
+alwaysApply: true
+---
+Cahier des Charges : Application pwa de Suivi de Paris Sportifs
+1. Vision et objectifs
+Présentation du projet
+Ce projet consiste en la création d'une application pwa permettant aux utilisateurs de suivre et d'analyser leurs paris sportifs. L'application utilisera la technologie OCR (reconnaissance optique de caractères) ou une IA pour extraire automatiquement les informations à partir de photos de tickets de paris, évitant ainsi la saisie manuelle.
+Objectifs business mesurables
+
+Réduire de 90% le temps de saisie des paris par rapport à une méthode manuelle
+Permettre l'analyse précise du taux de réussite par type de pari (simple, combiné)
+Identifier les types de pronostics les plus rentables (victoire directe, nombre de buts, etc.)
+Améliorer le retour sur investissement des paris de 15% grâce à l'analyse des données
+
+Public cible et besoins
+
+Parieurs réguliers souhaitant optimiser leurs stratégies
+Besoin d'un suivi historique de tous les paris placés
+Besoin d'analyses statistiques sur les types de paris gagnants
+Besoin d'une interface simple pour la capture et le suivi des paris
+
+2. Périmètre fonctionnel
+Arborescence des écrans
+
+Écran d'accueil/tableau de bord
+
+Synthèse des performances (gains/pertes, taux de réussite)
+Raccourcis vers les fonctionnalités principales
+
+
+Capture de paris
+
+Interface de prise de photo
+Visualisation et édition des données extraites
+
+
+Historique des paris
+
+Liste chronologique avec statut (en attente, gagné, perdu)
+Filtres par période, type de pari, sport
+
+
+Analyse des performances
+
+Graphiques de performance par type de pari
+Statistiques détaillées sur les sports/marchés les plus rentables
+
+
+Paramètres
+
+Configuration du compte
+Préférences de notification
+Calibrage de l'OCR/IA
+
+
+
+Fonctionnalités essentielles
+Capture et extraction de données
+
+Prise de photo des tickets de paris
+Reconnaissance OCR/IA des éléments clés :
+
+Matchs (équipes/compétiteurs)
+Types de paris (simple, combiné)
+Pronostics spécifiques (victoire, nombre de buts, etc.)
+Cotes
+Mise
+Date et heure du match
+
+
+Correction manuelle des données mal reconnues
+Sauvegarde automatique des données extraites
+
+Suivi des paris
+
+Mise à jour automatique ou manuelle des résultats
+Calcul des gains/pertes
+Historique complet des paris avec recherche et filtres
+Exportation des données (CSV, PDF)
+
+Analyse et statistiques
+
+Taux de réussite global et par catégorie
+Rendement par type de pari (simple vs combiné)
+Performance par sport et par marché (victoire, buts, etc.)
+Visualisation des tendances sur différentes périodes
+Recommandations basées sur les performances passées
+
+Parcours utilisateurs critiques
+
+Enregistrement d'un nouveau pari
+
+Ouverture de l'application → Sélection "Nouveau pari" → Capture photo du ticket → Vérification des données extraites → Validation → Confirmation
+
+
+Consultation des performances
+
+Ouverture de l'application → Sélection "Analyses" → Choix du type d'analyse → Définition de la période → Visualisation des résultats
+
+
+Mise à jour du statut d'un pari
+
+Notification de fin de match → Ouverture de l'application → Confirmation du résultat → Mise à jour automatique des statistiques
+
+
+
+3. Recommandations techniques
+Stack technologique recommandée
+Frontend
+
+Framework : React Native
+
+Justification : Développement cross-platform (iOS et Android) avec une seule base de code, large écosystème de composants
+
+
+UI Kit : React Native Paper ou Native Base
+
+Justification : Composants prêts à l'emploi respectant les guidelines Material Design, accélération du développement
+
+
+État global : Redux Toolkit ou Zustand
+
+Justification : Gestion efficace de l'état de l'application, particulièrement importante pour les données de paris et statistiques
+
+
+Navigation : React Navigation v6+
+
+Justification : Standard de l'industrie pour la navigation dans React Native, support d'animations fluides
+
+
+
+Backend et stockage
+
+Services Cloud : Firebase (Firestore, Authentication, Functions)
+
+Justification : Solution serverless complète, synchronisation temps réel, authentification sécurisée
+
+
+Stockage local : Realm ou AsyncStorage pour le mode hors ligne
+
+Justification : Persistance des données même sans connexion internet
+
+
+OCR/IA : Google Cloud Vision API ou TensorFlow Lite avec un modèle custom
+
+Justification : Reconnaissance précise des tickets de paris, possibilité d'améliorer la précision avec l'apprentissage
+
+
+
+DevOps
+
+CI/CD : GitHub Actions ou Bitrise
+
+Justification : Automatisation du processus de build et de déploiement
+
+
+Monitoring : Firebase Crashlytics et Analytics
+
+Justification : Suivi des performances et des erreurs en production
+
+
+
+Architecture recommandée
+
+Architecture MVVM (Model-View-ViewModel) ou Clean Architecture
+Séparation claire entre la logique métier et l'interface utilisateur
+Services d'extraction de données isolés pour faciliter les évolutions
+Système de cache pour l'accès rapide aux données fréquemment utilisées
+Synchronisation en arrière-plan pour les mises à jour des résultats
+
+Intégrations tierces
+
+API de résultats sportifs (The Odds API, SportsDataIO, ou API-Football)
+Services de reconnaissance d'image (Google Cloud Vision, AWS Rekognition)
+Système de notifications push (Firebase Cloud Messaging)
+Outils d'analyse (Firebase Analytics, Amplitude)
+
+4. Expérience utilisateur
+Principes d'UX
+
+Interface minimaliste et intuitive
+Retour visuel immédiat lors de la capture de tickets
+Présentation des données complexes sous forme de visualisations simples
+Expérience fluide entre la capture, le suivi et l'analyse
+Navigation contextuelle intuitive (retour aux paris depuis les analyses)
+
+Charte graphique
+
+Palette de couleurs :
+
+Couleur primaire : #1E88E5 (bleu) - Confiance et professionnalisme
+Couleur secondaire : #43A047 (vert) - Gains/succès
+Couleur d'alerte : #E53935 (rouge) - Pertes/échecs
+Neutres : #F5F5F5, #EEEEEE, #212121 - Fond et texte
+
+
+Typographie :
+
+Police principale : Roboto ou SF Pro
+Hiérarchie claire avec 3-4 tailles de texte
+Emphase sur la lisibilité des chiffres et statistiques
+
+
+Composants :
+
+Cartes pour les paris individuels
+Boutons d'action principaux bien visibles
+Indicateurs visuels de statut (en attente, gagné, perdu)
+Icônes distinctives pour les différents types de paris
+
+
+
+Responsive design
+
+Optimisation pour différentes tailles d'écrans (de 4.7" à 6.7")
+Mode paysage pour les écrans d'analyse avec graphiques détaillés
+Adaptation aux tablettes pour les utilisateurs avancés
+Support du mode sombre
+
+Animations et interactions
+
+Animation de transition lors de la capture et reconnaissance
+Feedback haptique lors des actions importantes
+Animations subtiles pour les mises à jour de statistiques
+Gestes intuitifs (swipe pour les actions rapides sur les paris)
+
+5. Exigences techniques
+Performance
+
+Temps de démarrage de l'application < 2 secondes
+Reconnaissance OCR < 3 secondes par ticket
+Chargement des données historiques en pagination (20 paris par page)
+Optimisation des assets et images
+Mise en cache intelligente des données fréquemment consultées
+
+Sécurité
+
+Authentification utilisateur via Firebase Auth
+Chiffrement des données sensibles stockées localement
+Protection contre les attaques MITM pour les communications réseau
+Politique de confidentialité claire sur l'utilisation des images
+Option de verrouillage de l'application (code PIN, biométrie)
+
+SEO et accessibilité
+
+Compatibilité avec les lecteurs d'écran (VoiceOver, TalkBack)
+Contraste suffisant pour la lisibilité
+Taille de texte ajustable
+Support des fonctionnalités d'accessibilité natives (iOS et Android)
+Deep linking pour les liens partagés
+
+Compatibilité
+
+iOS 14+ et Android 9+
+Optimisation pour les dernières versions (iOS 16+, Android 13+)
+Gestion des permissions (appareil photo, stockage) adaptée à chaque OS
+Tests sur les appareils les plus courants du marché
+
+6. Livrables et déploiement
+Éléments à produire
+
+Code source complet de l'application (React Native)
+Documentation technique (architecture, APIs utilisées)
+Guide d'utilisation pour les utilisateurs finaux
+Modèle d'OCR/IA entraîné pour la reconnaissance des tickets
+Assets graphiques et ressources UI
+
+Environnements
+
+Développement : Environnement local avec données de test
+Test : Version de staging avec base de données de pré-production
+Production : Version finale connectée aux services de production
+
+Procédures de déploiement
+
+CI/CD automatisé via GitHub Actions ou Bitrise
+Tests automatisés (unitaires et d'intégration) avant chaque déploiement
+Distribution via TestFlight (iOS) et Firebase App Distribution (Android)
+Publication sur App Store et Google Play Store
+
+Maintenance et évolutions futures
+
+Mise en place d'un suivi des crashes et erreurs (Crashlytics)
+Plan de mise à jour régulière (mensuelle)
+Évolutions potentielles :
+
+Intégration directe avec les plateformes de paris populaires
+Fonctionnalités sociales (partage de pronostics)
+Système de prédiction basé sur l'IA et l'historique
+
+
+Abonnement premium avec fonctionnalités avancées
