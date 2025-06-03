@@ -5,7 +5,7 @@ import { DashboardSummary } from "@/components/dashboard/dashboard-summary"
 import { RecentBets } from "@/components/dashboard/recent-bets"
 import { QuickActions } from "@/components/dashboard/quick-actions"
 import { PerformanceChart } from "@/components/dashboard/performance-chart"
-import { PWAInstall } from "@/components/ui/pwa-install"
+import { PWAInstall, PWAStatus } from "@/components/ui/pwa-install"
 import { useAuth } from "@/components/auth/auth-provider"
 import { useRouter } from "next/navigation"
 import { useEffect } from "react"
@@ -112,6 +112,9 @@ export default function Dashboard() {
 
       {/* PWA Install prompt */}
       <PWAInstall />
+      
+      {/* PWA Debug en mode développement */}
+      <PWAStatus />
     </div>
   )
 }
