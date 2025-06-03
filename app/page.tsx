@@ -96,7 +96,7 @@ export default function Dashboard() {
             <div className="bg-white/60 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 p-6">
               <QuickActions />
             </div>
-            <div className="bg-white/60 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 p-6">
+            <div className="bg-white/60 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 p-0 md:p-6">
               <RecentBets />
             </div>
           </div>

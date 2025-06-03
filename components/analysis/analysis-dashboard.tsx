@@ -23,6 +23,7 @@ import { getUserBets, getBetStats } from "@/app/actions/bet-actions"
 import { useAuth } from "@/components/auth/auth-provider"
 import { useUserCurrency } from "@/hooks/use-user-currency"
 import { TrendingUp, Target, Trophy, AlertCircle, BarChart3, PieChart as PieChartIcon, LineChart as LineChartIcon } from "lucide-react"
+import type { Bet } from "@/lib/types/database"
 
 interface AnalysisData {
   name: string
@@ -40,6 +41,7 @@ export function AnalysisDashboard() {
   const [betTypeData, setBetTypeData] = useState<AnalysisData[]>([])
   const [sportData, setSportData] = useState<AnalysisData[]>([])
   const [marketData, setMarketData] = useState<AnalysisData[]>([])
+  const [filteredStats, setFilteredStats] = useState({ roi: 0, successRate: 0 })
   const { user } = useAuth()
   const { formatAmount, formatAmountWithSign } = useUserCurrency()
   const [stats, setStats] = useState<any>(null)
@@ -69,6 +71,10 @@ export function AnalysisDashboard() {
     if (bets.length === 0) return
 
     const filteredBets = filterBetsByPeriod(bets, period)
+
+    // Calculate filtered stats (ROI and success rate) based on selected period
+    const calculatedStats = calculateFilteredStats(filteredBets)
+    setFilteredStats(calculatedStats)
 
     // Performance data by month
     const monthlyPerformance = processMonthlyPerformance(filteredBets)
@@ -225,6 +231,22 @@ export function AnalysisDashboard() {
     }))
   }
 
+  const calculateFilteredStats = (filteredBets: Bet[]) => {
+    if (filteredBets.length === 0) {
+      return { roi: 0, successRate: 0 }
+    }
+
+    const wonBets = filteredBets.filter(bet => bet.status === 'won')
+    const totalStake = filteredBets.reduce((sum, bet) => sum + bet.stake, 0)
+    const totalWinnings = wonBets.reduce((sum, bet) => sum + (bet.actual_win || 0), 0)
+    const profit = totalWinnings - totalStake
+
+    const successRate = (wonBets.length / filteredBets.length) * 100
+    const roi = totalStake > 0 ? (profit / totalStake) * 100 : 0
+
+    return { roi, successRate }
+  }
+
   if (loading) {
     return (
       <div className="space-y-6">
@@ -276,7 +298,7 @@ export function AnalysisDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-gray-900">
-              {stats?.roi ? `${stats.roi.toFixed(1)}%` : '0%'}
+              {filteredStats.roi.toFixed(1)}%
             </div>
             <p className="text-xs text-blue-600">
               Retour sur investissement
@@ -291,7 +313,7 @@ export function AnalysisDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-gray-900">
-              {stats?.successRate ? `${stats.successRate.toFixed(1)}%` : '0%'}
+              {filteredStats.successRate.toFixed(1)}%
             </div>
             <p className="text-xs text-green-600">
               Taux de réussite global
@@ -306,7 +328,13 @@ export function AnalysisDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-gray-900">
-              {formatAmount(198)}
+              {(() => {
+                if (performanceData.length === 0) return formatAmount(0)
+                const bestMonth = performanceData.reduce((max, current) => 
+                  (current.value || 0) > (max.value || 0) ? current : max
+                )
+                return formatAmountWithSign(bestMonth.value || 0)
+              })()}
             </div>
             <p className="text-xs text-purple-600">
               Performance maximale
@@ -315,9 +343,9 @@ export function AnalysisDashboard() {
         </Card>
       </div>
 
-      <div className="flex justify-end">
+      <div className="flex flex-col sm:flex-row sm:justify-end gap-4 mb-6">
         <Select value={period} onValueChange={setPeriod}>
-          <SelectTrigger className="w-[180px]">
+          <SelectTrigger className="w-full sm:w-[180px]">
             <SelectValue placeholder="Période" />
           </SelectTrigger>
           <SelectContent>
@@ -331,30 +359,47 @@ export function AnalysisDashboard() {
       </div>
 
       <Tabs defaultValue="overview">
-        <TabsList className="mb-4">
-          <TabsTrigger value="overview">Vue d'ensemble</TabsTrigger>
-          <TabsTrigger value="bettypes">Types de paris</TabsTrigger>
-          <TabsTrigger value="sports">Sports</TabsTrigger>
-          <TabsTrigger value="markets">Marchés</TabsTrigger>
-        </TabsList>
+        <div className="overflow-x-auto scrollbar-hide mb-4">
+          <TabsList className="w-max sm:w-full grid grid-cols-4 h-10">
+            <TabsTrigger value="overview" className="whitespace-nowrap px-3 sm:px-6 text-xs sm:text-sm">
+              Vue d'ensemble
+            </TabsTrigger>
+            <TabsTrigger value="bettypes" className="whitespace-nowrap px-3 sm:px-6 text-xs sm:text-sm">
+              Types de paris
+            </TabsTrigger>
+            <TabsTrigger value="sports" className="whitespace-nowrap px-3 sm:px-6 text-xs sm:text-sm">
+              Sports
+            </TabsTrigger>
+            <TabsTrigger value="markets" className="whitespace-nowrap px-3 sm:px-6 text-xs sm:text-sm">
+              Marchés
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
         <TabsContent value="overview">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
             <Card>
               <CardHeader>
-                <CardTitle>Évolution des gains et pertes</CardTitle>
+                <CardTitle className="text-lg sm:text-xl">Évolution des gains et pertes</CardTitle>
               </CardHeader>
-              <CardContent className="h-[350px]">
+              <CardContent className="h-[300px] sm:h-[350px]">
                 {performanceData.length === 0 ? (
-                  <div className="flex items-center justify-center h-full text-muted-foreground">
+                  <div className="flex items-center justify-center h-full text-muted-foreground text-sm sm:text-base">
                     Aucune donnée pour cette période
                   </div>
                 ) : (
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={performanceData}>
                       <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="name" />
-                      <YAxis />
+                      <XAxis 
+                        dataKey="name" 
+                        fontSize={12}
+                        tick={{ fontSize: 12 }}
+                      />
+                      <YAxis 
+                        fontSize={12}
+                        tick={{ fontSize: 12 }}
+                      />
                       <Tooltip
                         formatter={(value: number, name: string) => [
                           `${value.toFixed(2)}€`,
@@ -372,11 +417,11 @@ export function AnalysisDashboard() {
 
             <Card>
               <CardHeader>
-                <CardTitle>Répartition des types de paris</CardTitle>
+                <CardTitle className="text-lg sm:text-xl">Répartition des types de paris</CardTitle>
               </CardHeader>
-              <CardContent className="h-[350px]">
+              <CardContent className="h-[300px] sm:h-[350px]">
                 {betTypeData.length === 0 ? (
-                  <div className="flex items-center justify-center h-full text-muted-foreground">
+                  <div className="flex items-center justify-center h-full text-muted-foreground text-sm sm:text-base">
                     Aucune donnée pour cette période
                   </div>
                 ) : (
@@ -388,7 +433,7 @@ export function AnalysisDashboard() {
                         cy="50%"
                         labelLine={false}
                         label={({ name, value }) => `${name}: ${value}%`}
-                        outerRadius={80}
+                        outerRadius={70}
                         fill="#8884d8"
                         dataKey="value"
                       >
@@ -409,19 +454,26 @@ export function AnalysisDashboard() {
         <TabsContent value="bettypes">
           <Card>
             <CardHeader>
-              <CardTitle>Analyse par type de pari</CardTitle>
+              <CardTitle className="text-lg sm:text-xl">Analyse par type de pari</CardTitle>
             </CardHeader>
-            <CardContent className="h-[400px]">
+            <CardContent className="h-[300px] sm:h-[400px]">
               {betTypeData.length === 0 ? (
-                <div className="flex items-center justify-center h-full text-muted-foreground">
+                <div className="flex items-center justify-center h-full text-muted-foreground text-sm sm:text-base">
                   Aucune donnée pour cette période
                 </div>
               ) : (
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={betTypeData}>
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
+                    <XAxis 
+                      dataKey="name"
+                      fontSize={12}
+                      tick={{ fontSize: 12 }}
+                    />
+                    <YAxis 
+                      fontSize={12}
+                      tick={{ fontSize: 12 }}
+                    />
                     <Tooltip formatter={(value: number) => [`${value}%`, "Pourcentage"]} />
                     <Legend />
                     <Bar dataKey="value" name="Pourcentage" fill="#1E88E5" />
@@ -435,11 +487,11 @@ export function AnalysisDashboard() {
         <TabsContent value="sports">
           <Card>
             <CardHeader>
-              <CardTitle>Analyse par sport</CardTitle>
+              <CardTitle className="text-lg sm:text-xl">Analyse par sport</CardTitle>
             </CardHeader>
-            <CardContent className="h-[400px]">
+            <CardContent className="h-[300px] sm:h-[400px]">
               {sportData.length === 0 ? (
-                <div className="flex items-center justify-center h-full text-muted-foreground">
+                <div className="flex items-center justify-center h-full text-muted-foreground text-sm sm:text-base">
                   Aucune donnée pour cette période
                 </div>
               ) : (
@@ -451,7 +503,7 @@ export function AnalysisDashboard() {
                       cy="50%"
                       labelLine={false}
                       label={({ name, value }) => `${name}: ${value}%`}
-                      outerRadius={120}
+                      outerRadius={90}
                       fill="#8884d8"
                       dataKey="value"
                     >
@@ -471,11 +523,11 @@ export function AnalysisDashboard() {
         <TabsContent value="markets">
           <Card>
             <CardHeader>
-              <CardTitle>Analyse par marché</CardTitle>
+              <CardTitle className="text-lg sm:text-xl">Analyse par marché</CardTitle>
             </CardHeader>
-            <CardContent className="h-[400px]">
+            <CardContent className="h-[300px] sm:h-[400px]">
               {marketData.length === 0 ? (
-                <div className="flex items-center justify-center h-full text-muted-foreground">
+                <div className="flex items-center justify-center h-full text-muted-foreground text-sm sm:text-base">
                   Aucune donnée pour cette période
                 </div>
               ) : (
@@ -487,7 +539,7 @@ export function AnalysisDashboard() {
                       cy="50%"
                       labelLine={false}
                       label={({ name, value }) => `${name}: ${value}%`}
-                      outerRadius={120}
+                      outerRadius={90}
                       fill="#8884d8"
                       dataKey="value"
                     >

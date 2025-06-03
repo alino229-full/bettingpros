@@ -214,3 +214,153 @@ export async function getBetStats() {
     return { success: false, error: "Erreur inattendue" }
   }
 }
+
+export async function getPerformanceData(period: string = "30") {
+  const supabase = await createServerClient()
+
+  // Get the current user
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser()
+
+  if (authError || !user) {
+    return { success: false, error: "Non autorisé" }
+  }
+
+  try {
+    // Calculate date range based on period
+    const now = new Date()
+    const startDate = new Date()
+    let groupBy = "day"
+    let dateFormat = "YYYY-MM-DD"
+
+    switch (period) {
+      case "7":
+        startDate.setDate(now.getDate() - 7)
+        groupBy = "day"
+        dateFormat = "DD/MM"
+        break
+      case "30":
+        startDate.setDate(now.getDate() - 30)
+        groupBy = "day"
+        dateFormat = "DD/MM"
+        break
+      case "90":
+        startDate.setDate(now.getDate() - 90)
+        groupBy = "week"
+        dateFormat = "DD/MM"
+        break
+      case "365":
+        startDate.setFullYear(now.getFullYear() - 1)
+        groupBy = "month"
+        dateFormat = "MMM"
+        break
+      default:
+        startDate.setDate(now.getDate() - 30)
+    }
+
+    // Fetch bets for the period
+    const { data, error } = await supabase
+      .from("bets")
+      .select("*")
+      .eq("user_id", user.id)
+      .gte("created_at", startDate.toISOString())
+      .lte("created_at", now.toISOString())
+      .order("created_at", { ascending: true })
+
+    if (error) {
+      console.error("Error fetching performance data:", error)
+      return { success: false, error: "Erreur lors de la récupération des données de performance" }
+    }
+
+    const betsData = data || []
+
+    // Group data by the specified period
+    const groupedData = new Map()
+
+    betsData.forEach((bet) => {
+      const betDate = new Date(bet.created_at)
+      let key = ""
+
+      if (groupBy === "day") {
+        key = betDate.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" })
+      } else if (groupBy === "week") {
+        // Get week number
+        const weekStart = new Date(betDate)
+        weekStart.setDate(betDate.getDate() - betDate.getDay())
+        key = weekStart.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" })
+      } else if (groupBy === "month") {
+        key = betDate.toLocaleDateString("fr-FR", { month: "short" }).replace(".", "")
+      }
+
+      if (!groupedData.has(key)) {
+        groupedData.set(key, {
+          date: key,
+          profit: 0,
+          totalBets: 0,
+          wonBets: 0,
+          lostBets: 0,
+          pendingBets: 0,
+        })
+      }
+
+      const group = groupedData.get(key)
+      group.totalBets += 1
+
+      if (bet.status === "won") {
+        group.wonBets += 1
+        group.profit += (bet.actual_win || 0) - bet.stake
+      } else if (bet.status === "lost") {
+        group.lostBets += 1
+        group.profit -= bet.stake
+      } else {
+        group.pendingBets += 1
+      }
+    })
+
+    // Convert map to array and fill missing dates with zero values
+    const result = Array.from(groupedData.values())
+
+    // If no data, return empty periods for the chart
+    if (result.length === 0) {
+      const emptyData = []
+      const periodLength = period === "7" ? 7 : period === "30" ? 6 : period === "90" ? 12 : 12
+
+      for (let i = 0; i < periodLength; i++) {
+        const date = new Date(startDate)
+        if (groupBy === "day") {
+          date.setDate(startDate.getDate() + i * (period === "30" ? 5 : 1))
+        } else if (groupBy === "week") {
+          date.setDate(startDate.getDate() + i * 7)
+        } else {
+          date.setMonth(startDate.getMonth() + i)
+        }
+
+        let key = ""
+        if (groupBy === "day") {
+          key = date.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" })
+        } else if (groupBy === "week") {
+          key = date.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" })
+        } else {
+          key = date.toLocaleDateString("fr-FR", { month: "short" }).replace(".", "")
+        }
+
+        emptyData.push({
+          date: key,
+          profit: 0,
+          totalBets: 0,
+          wonBets: 0,
+          lostBets: 0,
+          pendingBets: 0,
+        })
+      }
+      return { success: true, data: emptyData }
+    }
+
+    return { success: true, data: result }
+  } catch (error) {
+    console.error("Error calculating performance data:", error)
+    return { success: false, error: "Erreur inattendue" }
+  }
+}

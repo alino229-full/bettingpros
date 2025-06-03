@@ -183,11 +183,19 @@ export function SettingsForm() {
 
   return (
     <Tabs defaultValue="profile" className="max-w-2xl mx-auto">
-      <TabsList className="grid grid-cols-3 mb-8">
-        <TabsTrigger value="profile">Profil</TabsTrigger>
-        <TabsTrigger value="notifications">Notifications</TabsTrigger>
-        <TabsTrigger value="preferences">Préférences</TabsTrigger>
-      </TabsList>
+      <div className="overflow-x-auto scrollbar-hide mb-8">
+        <TabsList className="grid grid-cols-3 w-max sm:w-full">
+          <TabsTrigger value="profile" className="whitespace-nowrap px-3 sm:px-6 text-xs sm:text-sm">
+            Profil
+          </TabsTrigger>
+          <TabsTrigger value="notifications" className="whitespace-nowrap px-3 sm:px-6 text-xs sm:text-sm">
+            Notifications
+          </TabsTrigger>
+          <TabsTrigger value="preferences" className="whitespace-nowrap px-3 sm:px-6 text-xs sm:text-sm">
+            Préférences
+          </TabsTrigger>
+        </TabsList>
+      </div>
 
       {error && (
         <Alert variant="destructive" className="mb-6">
@@ -265,24 +273,31 @@ export function SettingsForm() {
                   )}
                 />
 
-                <div className="flex gap-4">
-                  <Button type="submit" disabled={isLoading}>
+                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                  <Button type="submit" disabled={isLoading} className="w-full sm:w-auto">
                     {isLoading ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Enregistrement...
+                        <span className="hidden sm:inline">Enregistrement...</span>
+                        <span className="sm:hidden">Sauvegarde...</span>
                       </>
                     ) : isSaved ? (
                       <>
-                        <Check className="mr-2 h-4 w-4" /> Enregistré
+                        <Check className="mr-2 h-4 w-4" />
+                        <span className="hidden sm:inline">Enregistré</span>
+                        <span className="sm:hidden">✓ Fait</span>
                       </>
                     ) : (
-                      "Enregistrer les modifications"
+                      <>
+                        <span className="hidden sm:inline">Enregistrer les modifications</span>
+                        <span className="sm:hidden">Enregistrer</span>
+                      </>
                     )}
                   </Button>
 
-                  <Button type="button" variant="outline" onClick={handlePasswordReset} disabled={isLoading}>
-                    Réinitialiser le mot de passe
+                  <Button type="button" variant="outline" onClick={handlePasswordReset} disabled={isLoading} className="w-full sm:w-auto">
+                    <span className="hidden sm:inline">Réinitialiser le mot de passe</span>
+                    <span className="sm:hidden">Réinitialiser MDP</span>
                   </Button>
                 </div>
               </form>
@@ -305,9 +320,9 @@ export function SettingsForm() {
                   name="betResults"
                   render={({ field }) => (
                     <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                      <div className="space-y-0.5">
+                      <div className="space-y-0.5 flex-1 min-w-0 pr-4">
                         <FormLabel className="text-base">Résultats des paris</FormLabel>
-                        <FormDescription>Recevez des notifications lorsque vos paris sont terminés</FormDescription>
+                        <FormDescription className="text-sm">Recevez des notifications lorsque vos paris sont terminés</FormDescription>
                       </div>
                       <FormControl>
                         <Switch checked={field.value} onCheckedChange={field.onChange} />
@@ -321,9 +336,9 @@ export function SettingsForm() {
                   name="newFeatures"
                   render={({ field }) => (
                     <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                      <div className="space-y-0.5">
+                      <div className="space-y-0.5 flex-1 min-w-0 pr-4">
                         <FormLabel className="text-base">Nouvelles fonctionnalités</FormLabel>
-                        <FormDescription>Soyez informé des nouvelles fonctionnalités de l'application</FormDescription>
+                        <FormDescription className="text-sm">Soyez informé des nouvelles fonctionnalités de l'application</FormDescription>
                       </div>
                       <FormControl>
                         <Switch checked={field.value} onCheckedChange={field.onChange} />
@@ -337,9 +352,9 @@ export function SettingsForm() {
                   name="marketingEmails"
                   render={({ field }) => (
                     <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                      <div className="space-y-0.5">
+                      <div className="space-y-0.5 flex-1 min-w-0 pr-4">
                         <FormLabel className="text-base">Emails marketing</FormLabel>
-                        <FormDescription>Recevez des offres et des promotions par email</FormDescription>
+                        <FormDescription className="text-sm">Recevez des offres et des promotions par email</FormDescription>
                       </div>
                       <FormControl>
                         <Switch checked={field.value} onCheckedChange={field.onChange} />
@@ -348,13 +363,18 @@ export function SettingsForm() {
                   )}
                 />
 
-                <Button type="submit">
+                <Button type="submit" className="w-full sm:w-auto">
                   {isSaved ? (
                     <>
-                      <Check className="mr-2 h-4 w-4" /> Enregistré
+                      <Check className="mr-2 h-4 w-4" />
+                      <span className="hidden sm:inline">Enregistré</span>
+                      <span className="sm:hidden">✓ Fait</span>
                     </>
                   ) : (
-                    "Enregistrer les modifications"
+                    <>
+                      <span className="hidden sm:inline">Enregistrer les modifications</span>
+                      <span className="sm:hidden">Enregistrer</span>
+                    </>
                   )}
                 </Button>
               </form>
@@ -442,13 +462,18 @@ export function SettingsForm() {
                   )}
                 />
 
-                <Button type="submit">
+                <Button type="submit" className="w-full sm:w-auto">
                   {isSaved ? (
                     <>
-                      <Check className="mr-2 h-4 w-4" /> Enregistré
+                      <Check className="mr-2 h-4 w-4" />
+                      <span className="hidden sm:inline">Enregistré</span>
+                      <span className="sm:hidden">✓ Fait</span>
                     </>
                   ) : (
-                    "Enregistrer les modifications"
+                    <>
+                      <span className="hidden sm:inline">Enregistrer les modifications</span>
+                      <span className="sm:hidden">Enregistrer</span>
+                    </>
                   )}
                 </Button>
               </form>

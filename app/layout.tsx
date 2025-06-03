@@ -12,7 +12,6 @@ export const metadata: Metadata = {
   title: "BettingTipsPros - Suivi de Paris Sportifs",
   description: "Application PWA de suivi et d'analyse de paris sportifs avec intelligence artificielle",
   generator: 'Next.js',
-  manifest: '/manifest.json',
   keywords: ['paris sportifs', 'analyse', 'IA', 'statistiques', 'bookmaker', 'cotes'],
   authors: [
     { name: 'BettingTipsPros' }
@@ -103,6 +102,10 @@ export default async function RootLayout({
 
   return (
     <html lang="fr" suppressHydrationWarning>
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+      </head>
       <body className={inter.className}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <AuthProvider initialUser={user} initialProfile={profile}>
