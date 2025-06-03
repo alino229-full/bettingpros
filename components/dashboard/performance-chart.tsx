@@ -18,6 +18,7 @@ interface PerformanceDataPoint {
   wonBets: number
   lostBets: number
   pendingBets: number
+  cancelledBets: number
 }
 
 // Composant Chart sans SSR pour éviter les problèmes d'hydratation
@@ -179,6 +180,12 @@ function PerformanceChartInner() {
               <div className="flex justify-between text-amber-600">
                 <span>En attente:</span>
                 <span className="font-medium">{data.pendingBets}</span>
+              </div>
+            )}
+            {data.cancelledBets > 0 && (
+              <div className="flex justify-between text-gray-600">
+                <span>Remboursés:</span>
+                <span className="font-medium">{data.cancelledBets}</span>
               </div>
             )}
           </div>

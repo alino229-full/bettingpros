@@ -425,36 +425,36 @@ export function BetHistory() {
 
           {/* Desktop Tabs */}
           <div className="hidden md:block">
-            <TabsList className="grid w-full grid-cols-4 bg-gray-50 rounded-xl p-1">
-              <TabsTrigger 
-                value="all" 
-                className="rounded-lg font-medium data-[state=active]:bg-white data-[state=active]:text-gray-700 transition-all duration-200 text-gray-500"
-              >
-                <Target className="w-4 h-4 mr-2" />
-                Tous ({filteredBets.length})
-              </TabsTrigger>
-              <TabsTrigger 
-                value="won" 
-                className="rounded-lg font-medium data-[state=active]:bg-white data-[state=active]:text-green-600 transition-all duration-200 text-gray-500"
-              >
-                <Trophy className="w-4 h-4 mr-2" />
-                Gagnés ({bets.filter((b) => b.status === "won").length})
-              </TabsTrigger>
-              <TabsTrigger 
-                value="lost" 
-                className="rounded-lg font-medium data-[state=active]:bg-white data-[state=active]:text-red-600 transition-all duration-200 text-gray-500"
-              >
-                <XCircle className="w-4 h-4 mr-2" />
-                Perdus ({bets.filter((b) => b.status === "lost").length})
-              </TabsTrigger>
-              <TabsTrigger 
-                value="pending" 
-                className="rounded-lg font-medium data-[state=active]:bg-white data-[state=active]:text-blue-600 transition-all duration-200 text-gray-500"
-              >
-                <Clock className="w-4 h-4 mr-2" />
-                En attente ({bets.filter((b) => b.status === "pending").length})
-              </TabsTrigger>
-            </TabsList>
+          <TabsList className="grid w-full grid-cols-4 bg-gray-50 rounded-xl p-1">
+            <TabsTrigger 
+              value="all" 
+              className="rounded-lg font-medium data-[state=active]:bg-white data-[state=active]:text-gray-700 transition-all duration-200 text-gray-500"
+            >
+              <Target className="w-4 h-4 mr-2" />
+              Tous ({filteredBets.length})
+            </TabsTrigger>
+            <TabsTrigger 
+              value="won" 
+              className="rounded-lg font-medium data-[state=active]:bg-white data-[state=active]:text-green-600 transition-all duration-200 text-gray-500"
+            >
+              <Trophy className="w-4 h-4 mr-2" />
+              Gagnés ({bets.filter((b) => b.status === "won").length})
+            </TabsTrigger>
+            <TabsTrigger 
+              value="lost" 
+              className="rounded-lg font-medium data-[state=active]:bg-white data-[state=active]:text-red-600 transition-all duration-200 text-gray-500"
+            >
+              <XCircle className="w-4 h-4 mr-2" />
+              Perdus ({bets.filter((b) => b.status === "lost").length})
+            </TabsTrigger>
+            <TabsTrigger 
+              value="pending" 
+              className="rounded-lg font-medium data-[state=active]:bg-white data-[state=active]:text-blue-600 transition-all duration-200 text-gray-500"
+            >
+              <Clock className="w-4 h-4 mr-2" />
+              En attente ({bets.filter((b) => b.status === "pending").length})
+            </TabsTrigger>
+          </TabsList>
           </div>
         </div>
 

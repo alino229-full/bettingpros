@@ -1,21 +1,56 @@
-// Service Worker pour BettingTipsPros PWA - Version Simple et Robuste
-const CACHE_NAME = 'bettingtipspros-v1'
-const urlsToCache = [
+// Service Worker pour BettingTipsPros PWA - Version Optimisée
+const CACHE_NAME = 'bettingtipspros-v3'
+const STATIC_CACHE_NAME = 'bettingtipspros-static-v3'
+
+// URLs statiques à mettre en cache
+const staticAssets = [
   '/',
-  '/capture',
-  '/history', 
-  '/analysis',
-  '/settings',
   '/web-app-manifest-192x192.png',
   '/web-app-manifest-512x512.png'
 ]
 
+// Fonction pour vérifier si une requête peut être mise en cache
+const canCacheRequest = (request) => {
+  const url = new URL(request.url)
+  
+  // Exclure les requêtes non-GET
+  if (request.method !== 'GET') return false
+  
+  // Exclure les APIs externes et internes
+  if (url.pathname.startsWith('/api/') || 
+      url.hostname.includes('supabase.co') ||
+      url.hostname.includes('googleapis.com') ||
+      url.hostname.includes('gstatic.com')) {
+    return false
+  }
+  
+  // Exclure les chunks Next.js dynamiques (ils changent souvent)
+  if (url.pathname.includes('/_next/static/chunks/') ||
+      url.pathname.includes('/_next/static/webpack/') ||
+      url.pathname.includes('.hot-update.')) {
+    return false
+  }
+  
+  // Permettre seulement les ressources statiques et pages
+  return url.pathname.startsWith('/_next/static/') ||
+         url.pathname.endsWith('.png') ||
+         url.pathname.endsWith('.jpg') ||
+         url.pathname.endsWith('.jpeg') ||
+         url.pathname.endsWith('.svg') ||
+         url.pathname.endsWith('.ico') ||
+         url.pathname.endsWith('.css') ||
+         !url.pathname.includes('.')
+}
+
 // Installation du Service Worker
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then((cache) => cache.addAll(urlsToCache))
+    caches.open(STATIC_CACHE_NAME)
+      .then((cache) => cache.addAll(staticAssets))
       .then(() => self.skipWaiting())
+      .catch((error) => {
+        console.error('Erreur lors de l\'installation du SW:', error)
+      })
   )
 })
 
@@ -25,7 +60,9 @@ self.addEventListener('activate', (event) => {
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE_NAME) {
+          // Supprimer les anciens caches
+          if (cacheName !== CACHE_NAME && cacheName !== STATIC_CACHE_NAME) {
+            console.log('Suppression de l\'ancien cache:', cacheName)
             return caches.delete(cacheName)
           }
         })
@@ -34,34 +71,55 @@ self.addEventListener('activate', (event) => {
   )
 })
 
-// Stratégie de cache
+// Stratégie de cache intelligente
 self.addEventListener('fetch', (event) => {
-  // Ignorer les requêtes non-GET
-  if (event.request.method !== 'GET') return
+  const request = event.request
   
-  // Ignorer les API externes
-  if (event.request.url.includes('supabase.co') || 
-      event.request.url.includes('googleapis.com') ||
-      event.request.url.includes('/api/')) {
+  // Ignorer les requêtes qui ne peuvent pas être mises en cache
+  if (!canCacheRequest(request)) {
     return
   }
 
   event.respondWith(
-    caches.match(event.request)
-      .then((response) => {
-        // Retourner le cache si disponible, sinon faire la requête réseau
-        return response || fetch(event.request)
-      })
-      .catch(() => {
-        // Fallback vers la page d'accueil pour les routes
-        if (event.request.destination === 'document') {
-          return caches.match('/')
+    caches.match(request)
+      .then((cachedResponse) => {
+        // Si on a une réponse en cache pour les assets statiques, la retourner
+        if (cachedResponse && request.url.includes('/_next/static/')) {
+          return cachedResponse
         }
+        
+        // Pour les autres ressources, essayer le réseau d'abord
+        return fetch(request)
+          .then((networkResponse) => {
+            // Si la réponse réseau est valide, la mettre en cache
+            if (networkResponse && networkResponse.status === 200) {
+              const responseClone = networkResponse.clone()
+              
+              caches.open(CACHE_NAME).then((cache) => {
+                cache.put(request, responseClone)
+              })
+            }
+            
+            return networkResponse
+          })
+          .catch(() => {
+            // En cas d'erreur réseau, retourner le cache si disponible
+            if (cachedResponse) {
+              return cachedResponse
+            }
+            
+            // Fallback pour les pages
+            if (request.destination === 'document') {
+              return caches.match('/')
+            }
+            
+            throw new Error('No cached response available')
+          })
       })
   )
 })
 
-// Gestion des notifications push (optionnel)
+// Gestion des notifications push
 self.addEventListener('push', (event) => {
   if (event.data) {
     const data = event.data.json()
@@ -87,4 +145,6 @@ self.addEventListener('notificationclick', (event) => {
   event.waitUntil(
     clients.openWindow('/')
   )
-}) 
+})
+
+console.log('Service Worker BettingTipsPros v3 chargé') 

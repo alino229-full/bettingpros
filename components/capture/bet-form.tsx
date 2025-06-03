@@ -7,11 +7,12 @@ import { Button } from "@/components/ui/button"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { AlertCircle, Sparkles } from "lucide-react"
+import { AlertCircle, Sparkles, Clock, TrendingUp, TrendingDown } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { createBet } from "@/app/actions/bet-actions"
 import { useState } from "react"
 import { useAuth } from "@/components/auth/auth-provider"
+import { useUserCurrency } from "@/hooks/use-user-currency"
 
 const betFormSchema = z.object({
   match: z.string().min(2, {
@@ -29,6 +30,9 @@ const betFormSchema = z.object({
   }),
   stake: z.coerce.number().positive({
     message: "La mise doit être un nombre positif",
+  }),
+  status: z.enum(["pending", "won", "lost", "cancelled"], {
+    required_error: "Le statut du pari doit être spécifié",
   }),
   date: z.string(),
   time: z.string().optional(),
@@ -50,6 +54,7 @@ export function BetForm({ onSubmit, initialData, isOcrExtracted = false, confide
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const { user } = useAuth()
+  const { getCurrencySymbol } = useUserCurrency()
 
   const form = useForm<BetFormValues>({
     resolver: zodResolver(betFormSchema),
@@ -60,6 +65,7 @@ export function BetForm({ onSubmit, initialData, isOcrExtracted = false, confide
       prediction: initialData?.prediction || "",
       odds: initialData?.odds || 1.5,
       stake: initialData?.stake || 10,
+      status: initialData?.status || "pending",
       date: initialData?.date || new Date().toISOString().split("T")[0],
       time: initialData?.time || "",
       bookmaker: initialData?.bookmaker || "",
@@ -78,6 +84,15 @@ export function BetForm({ onSubmit, initialData, isOcrExtracted = false, confide
     setError(null)
 
     try {
+      // Calculer le gain réel selon le statut
+      let actualWin = null
+      if (values.status === "won") {
+        actualWin = values.odds * values.stake // Gain complet
+      } else if (values.status === "cancelled") {
+        actualWin = values.stake // Remboursement de la mise
+      }
+      // Pour "lost" et "pending", actualWin reste null
+
       const result = await createBet({
         match_name: values.match,
         sport: values.sport,
@@ -87,12 +102,14 @@ export function BetForm({ onSubmit, initialData, isOcrExtracted = false, confide
         odds: values.odds,
         stake: values.stake,
         potential_win: values.odds * values.stake,
+        actual_win: actualWin,
         match_date: values.date || null,
         match_time: values.time || null,
         bookmaker: values.bookmaker || null,
         ticket_id: values.ticketId || null,
         confidence_score: confidence || null,
         is_ocr_extracted: isOcrExtracted,
+        status: values.status,
       })
 
       if (result.success) {
@@ -237,6 +254,71 @@ export function BetForm({ onSubmit, initialData, isOcrExtracted = false, confide
             )}
           />
 
+          <FormField
+            control={form.control}
+            name="status"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Statut du pari</FormLabel>
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Sélectionnez un statut" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="pending">
+                      <div className="flex items-center gap-2">
+                        <Clock className="h-4 w-4 text-blue-500" />
+                        <span>En cours</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="won">
+                      <div className="flex items-center gap-2">
+                        <TrendingUp className="h-4 w-4 text-green-500" />
+                        <span>Gagné</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="lost">
+                      <div className="flex items-center gap-2">
+                        <TrendingDown className="h-4 w-4 text-red-500" />
+                        <span>Perdu</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="cancelled">
+                      <div className="flex items-center gap-2">
+                        <AlertCircle className="h-4 w-4 text-gray-500" />
+                        <span>Remboursé</span>
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+                {getFieldConfidenceIndicator("status")}
+                {field.value === "won" && (
+                  <p className="text-sm text-green-600 bg-green-50 p-2 rounded-md border border-green-200">
+                    📈 Ce pari sera comptabilisé comme un gain dans vos statistiques
+                  </p>
+                )}
+                {field.value === "lost" && (
+                  <p className="text-sm text-red-600 bg-red-50 p-2 rounded-md border border-red-200">
+                    📉 Ce pari sera comptabilisé comme une perte dans vos statistiques
+                  </p>
+                )}
+                {field.value === "pending" && (
+                  <p className="text-sm text-blue-600 bg-blue-50 p-2 rounded-md border border-blue-200">
+                    ⏳ Ce pari restera en attente. Vous pourrez mettre à jour son statut plus tard
+                  </p>
+                )}
+                {field.value === "cancelled" && (
+                  <p className="text-sm text-gray-600 bg-gray-50 p-2 rounded-md border border-gray-200">
+                    💰 Ce pari sera comptabilisé comme remboursé (mise récupérée)
+                  </p>
+                )}
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
           <div className="grid grid-cols-2 gap-4">
             <FormField
               control={form.control}
@@ -258,7 +340,7 @@ export function BetForm({ onSubmit, initialData, isOcrExtracted = false, confide
               name="stake"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Mise (€)</FormLabel>
+                  <FormLabel>Mise ({getCurrencySymbol()})</FormLabel>
                   <FormControl>
                     <Input type="number" step="0.01" {...field} />
                   </FormControl>

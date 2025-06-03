@@ -373,7 +373,7 @@ export function AnalysisDashboard() {
             <TabsTrigger value="markets" className="whitespace-nowrap px-3 sm:px-6 text-xs sm:text-sm">
               Marchés
             </TabsTrigger>
-          </TabsList>
+        </TabsList>
         </div>
 
         <TabsContent value="overview">

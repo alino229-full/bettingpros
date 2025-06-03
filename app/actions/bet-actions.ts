@@ -185,14 +185,27 @@ export async function getBetStats() {
     const wonBets = betsData.filter((bet) => bet.status === "won").length
     const lostBets = betsData.filter((bet) => bet.status === "lost").length
     const pendingBets = betsData.filter((bet) => bet.status === "pending").length
+    const cancelledBets = betsData.filter((bet) => bet.status === "cancelled").length
 
     const totalStaked = betsData.reduce((sum, bet) => sum + (bet.stake || 0), 0)
     const totalWon = betsData.reduce((sum, bet) => sum + (bet.actual_win || 0), 0)
-    const totalLost = betsData.filter((bet) => bet.status === "lost").reduce((sum, bet) => sum + (bet.stake || 0), 0)
+    
+    // Pour le calcul des pertes, ne pas inclure les paris remboursés
+    const totalLost = betsData
+      .filter((bet) => bet.status === "lost")
+      .reduce((sum, bet) => sum + (bet.stake || 0), 0)
 
     const netProfit = totalWon - totalLost
-    const successRate = totalBets > 0 ? (wonBets / (wonBets + lostBets)) * 100 : 0
-    const roi = totalStaked > 0 ? (netProfit / totalStaked) * 100 : 0
+    
+    // Le taux de réussite exclut les paris en cours et remboursés
+    const settledBets = wonBets + lostBets // Paris avec résultat définitif
+    const successRate = settledBets > 0 ? (wonBets / settledBets) * 100 : 0
+    
+    // Le ROI est basé sur tous les paris sauf les remboursés
+    const investedAmount = betsData
+      .filter((bet) => bet.status !== "cancelled")
+      .reduce((sum, bet) => sum + (bet.stake || 0), 0)
+    const roi = investedAmount > 0 ? (netProfit / investedAmount) * 100 : 0
 
     return {
       success: true,
@@ -201,6 +214,7 @@ export async function getBetStats() {
         wonBets,
         lostBets,
         pendingBets,
+        cancelledBets,
         totalStaked,
         totalWon,
         totalLost,
@@ -302,6 +316,7 @@ export async function getPerformanceData(period: string = "30") {
           wonBets: 0,
           lostBets: 0,
           pendingBets: 0,
+          cancelledBets: 0,
         })
       }
 
@@ -314,6 +329,10 @@ export async function getPerformanceData(period: string = "30") {
       } else if (bet.status === "lost") {
         group.lostBets += 1
         group.profit -= bet.stake
+      } else if (bet.status === "cancelled") {
+        group.cancelledBets += 1
+        // Pour les paris remboursés, pas d'impact sur le profit (mise récupérée)
+        // group.profit += 0
       } else {
         group.pendingBets += 1
       }
@@ -353,6 +372,7 @@ export async function getPerformanceData(period: string = "30") {
           wonBets: 0,
           lostBets: 0,
           pendingBets: 0,
+          cancelledBets: 0,
         })
       }
       return { success: true, data: emptyData }

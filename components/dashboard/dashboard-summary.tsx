@@ -12,6 +12,7 @@ interface BetStats {
   wonBets: number
   lostBets: number
   pendingBets: number
+  cancelledBets: number
   totalStaked: number
   totalWon: number
   totalLost: number
@@ -32,7 +33,7 @@ export function DashboardSummary() {
 
       try {
         const result = await getBetStats()
-        if (result.success) {
+        if (result.success && result.data) {
           setStats(result.data)
         }
       } catch (error) {
@@ -125,6 +126,7 @@ export function DashboardSummary() {
           <div className="text-3xl font-bold text-gray-900 mb-1">{stats.totalBets}</div>
           <p className="text-xs text-blue-600">
             {stats.wonBets} gagnés • {stats.lostBets} perdus • {stats.pendingBets} en attente
+            {stats.cancelledBets > 0 && ` • ${stats.cancelledBets} remboursés`}
           </p>
         </CardContent>
       </Card>

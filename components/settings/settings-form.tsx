@@ -194,7 +194,7 @@ export function SettingsForm() {
           <TabsTrigger value="preferences" className="whitespace-nowrap px-3 sm:px-6 text-xs sm:text-sm">
             Préférences
           </TabsTrigger>
-        </TabsList>
+      </TabsList>
       </div>
 
       {error && (

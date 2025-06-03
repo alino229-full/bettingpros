@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { CheckCircle, XCircle, Clock, TrendingUp, Calendar, Plus, AlertCircle } from "lucide-react"
+import { CheckCircle, XCircle, Clock, TrendingUp, Calendar, Plus, AlertCircle, RotateCcw } from "lucide-react"
 import Link from "next/link"
 import { useEffect, useState } from "react"
 import { getUserBets } from "@/app/actions/bet-actions"
@@ -150,6 +150,11 @@ export function RecentBets() {
                     <Clock className="h-4 w-4 md:h-5 md:w-5 text-amber-600" />
                   </div>
                 )}
+                {bet.status === "cancelled" && (
+                  <div className="w-7 h-7 md:w-8 md:h-8 bg-gray-100 rounded-full flex items-center justify-center">
+                    <RotateCcw className="h-4 w-4 md:h-5 md:w-5 text-gray-600" />
+                  </div>
+                )}
               </div>
             </div>
             
@@ -191,15 +196,18 @@ export function RecentBets() {
                   {bet.status === "won" && "Gain"}
                   {bet.status === "lost" && "Perte"}
                   {bet.status === "pending" && "En attente"}
+                  {bet.status === "cancelled" && "Remboursé"}
                 </div>
                 <div className={`font-bold text-base md:text-lg ${
                   bet.status === "won" ? "text-green-600" : 
                   bet.status === "lost" ? "text-red-600" : 
+                  bet.status === "cancelled" ? "text-gray-600" :
                   "text-amber-600"
                 }`}>
                   {bet.status === "won" && bet.actual_win && formatAmountWithSign(bet.actual_win)}
                   {bet.status === "lost" && `-${formatAmount(bet.stake)}`}
                   {bet.status === "pending" && `+${formatAmount((bet.stake * bet.odds) - bet.stake)}`}
+                  {bet.status === "cancelled" && `${formatAmount(bet.stake)}`}
                 </div>
               </div>
             </div>
